@@ -4,6 +4,8 @@ A RESTful Notes/Task API built with **Node.js, Express, MongoDB, and Mongoose**.
 
 The project provides user authentication with Express sessions and user-specific note management. Each authenticated user can create, view, update, and delete only their own notes.
 
+### Currently using local MONGO DB url (mongodb://127.0.0.1:27017/notes_task_db) while deployement we can create a cluster on MONGO DB
+
 ## Features
 
 * Express REST API
