@@ -1,78 +1,102 @@
-import {Expense} from "../model/expense.model.js";
-import{ ApiError} from "../utils/ApiError.js";
+import {
+  createExpense as createExpenseService,
+  getAllExpenses as getAllExpensesService,
+  getExpenseById as getExpenseByIdService,
+  updateExpense as updateExpenseService,
+  deleteExpense as deleteExpenseService,
+  getMonthlyExpenseSummary as getMonthlyExpenseSummaryService,
+  getCategoryExpenseSummary as getCategoryExpenseSummaryService,
+  checkMonthlyBudget as checkMonthlyBudgetService,
+} from "../service/expense.service.js";
+
+import {ApiError} from "../utils/ApiError.js";
 import {ApiResponse} from "../utils/ApiResponse.js";
 import {asyncHandler} from "../utils/asyncHandler.js";
 
-// Create a new expense
-const createExpense = asyncHandler(async (req, res) => {
+const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
+
+export const createExpense = asyncHandler(async (req, res) => {
   const { amount, category, date } = req.body;
 
-  if (amount === undefined || !category?.trim()) {
-    throw new ApiError(400, "Amount and category are required");
+  if (amount === undefined || amount === null || amount === "") {
+    throw new ApiError(400, "Expense amount is required");
   }
 
-  if (
-    typeof amount !== "number" ||
-    !Number.isFinite(amount) ||
-    amount <= 0
-  ) {
-    throw new ApiError(400, "Amount must be a number greater than zero");
+  if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) {
+    throw new ApiError(400, "Expense amount must be a number greater than zero");
+  }
+
+  if (!category || typeof category !== "string" || !category.trim()) {
+    throw new ApiError(400, "Expense category is required");
   }
 
   if (date !== undefined && Number.isNaN(Date.parse(date))) {
-    throw new ApiError(400, "Please provide a valid date");
+    throw new ApiError(400, "Invalid expense date");
   }
 
-  const expense = await Expense.create({
+  const expense = await createExpenseService({
     amount,
-    category,
+    category: category.trim(),
     ...(date !== undefined && { date }),
   });
 
-  return res.status(201).json(
-    new ApiResponse(201, expense, "Expense created successfully")
-  );
+  return res
+    .status(201)
+    .json(new ApiResponse(201, expense, "Expense created successfully"));
 });
 
-// Get all expenses
-const getAllExpenses = asyncHandler(async (req, res) => {
-  const expenses = await Expense.find().sort({ date: -1 });
 
-  return res.status(200).json(
-    new ApiResponse(200, expenses, "Expenses fetched successfully")
-  );
+export const getAllExpenses = asyncHandler(async (req, res) => {
+  const { category, startDate, endDate } = req.query;
+
+  if (startDate && Number.isNaN(Date.parse(startDate))) {
+    throw new ApiError(400, "Invalid start date");
+  }
+
+  if (endDate && Number.isNaN(Date.parse(endDate))) {
+    throw new ApiError(400, "Invalid end date");
+  }
+
+  if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+    throw new ApiError(400, "Start date cannot be after end date");
+  }
+
+  const expenses = await getAllExpensesService({
+    category,
+    startDate,
+    endDate,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, expenses, "Expenses fetched successfully"));
 });
 
-// Get a single expense by ID
-const getExpenseById = asyncHandler(async (req, res) => {
+
+export const getExpenseById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+  if (!isValidObjectId(id)) {
     throw new ApiError(400, "Invalid expense ID");
   }
 
-  const expense = await Expense.findById(id);
+  const expense = await getExpenseByIdService(id);
 
   if (!expense) {
     throw new ApiError(404, "Expense not found");
   }
 
-  return res.status(200).json(
-    new ApiResponse(200, expense, "Expense fetched successfully")
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, expense, "Expense fetched successfully"));
 });
 
-// Update an existing expense
-const updateExpense = asyncHandler(async (req, res) => {
+export const updateExpense = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { amount, category, date } = req.body;
 
-  if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+  if (!isValidObjectId(id)) {
     throw new ApiError(400, "Invalid expense ID");
-  }
-
-  if (amount === undefined && category === undefined && date === undefined) {
-    throw new ApiError(400, "Provide at least one field to update");
   }
 
   const updates = {};
@@ -83,7 +107,7 @@ const updateExpense = asyncHandler(async (req, res) => {
       !Number.isFinite(amount) ||
       amount <= 0
     ) {
-      throw new ApiError(400, "Amount must be a number greater than zero");
+      throw new ApiError(400, "Expense amount must be a number greater than zero");
     }
 
     updates.amount = amount;
@@ -91,7 +115,7 @@ const updateExpense = asyncHandler(async (req, res) => {
 
   if (category !== undefined) {
     if (typeof category !== "string" || !category.trim()) {
-      throw new ApiError(400, "Category must be a non-empty string");
+      throw new ApiError(400, "Expense category cannot be empty");
     }
 
     updates.category = category.trim();
@@ -99,50 +123,116 @@ const updateExpense = asyncHandler(async (req, res) => {
 
   if (date !== undefined) {
     if (Number.isNaN(Date.parse(date))) {
-      throw new ApiError(400, "Please provide a valid date");
+      throw new ApiError(400, "Invalid expense date");
     }
 
     updates.date = date;
   }
 
-  const expense = await Expense.findByIdAndUpdate(
-    id,
-    { $set: updates },
-    { new: true, runValidators: true }
-  );
+  if (Object.keys(updates).length === 0) {
+    throw new ApiError(400, "Provide at least one field to update");
+  }
+
+  const expense = await updateExpenseService(id, updates);
 
   if (!expense) {
     throw new ApiError(404, "Expense not found");
   }
 
-  return res.status(200).json(
-    new ApiResponse(200, expense, "Expense updated successfully")
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, expense, "Expense updated successfully"));
 });
 
-// Delete an expense
-const deleteExpense = asyncHandler(async (req, res) => {
+export const deleteExpense = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+  if (!isValidObjectId(id)) {
     throw new ApiError(400, "Invalid expense ID");
   }
 
-  const expense = await Expense.findByIdAndDelete(id);
+  const expense = await deleteExpenseService(id);
 
   if (!expense) {
     throw new ApiError(404, "Expense not found");
   }
 
-  return res.status(200).json(
-    new ApiResponse(200, expense, "Expense deleted successfully")
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, expense, "Expense deleted successfully"));
 });
 
-export {
-  createExpense,
-  getAllExpenses,
-  getExpenseById,
-  updateExpense,
-  deleteExpense,
-};
+
+export const getMonthlyExpenseSummary = asyncHandler(
+  async (req, res) => {
+    const summary = await getMonthlyExpenseSummaryService();
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        summary,
+        "Monthly expense summary fetched successfully"
+      )
+    );
+  }
+);
+
+export const getCategoryExpenseSummary = asyncHandler(
+  async (req, res) => {
+    const summary = await getCategoryExpenseSummaryService();
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        summary,
+        "Category expense summary fetched successfully"
+      )
+    );
+  }
+);
+
+
+export const checkMonthlyBudget = asyncHandler(async (req, res) => {
+  const { monthlyBudget, year, month } = req.body;
+
+  if (
+    typeof monthlyBudget !== "number" ||
+    !Number.isFinite(monthlyBudget) ||
+    monthlyBudget <= 0
+  ) {
+    throw new ApiError(
+      400,
+      "Monthly budget must be a number greater than zero"
+    );
+  }
+
+  const now = new Date();
+  const selectedYear = year ?? now.getFullYear();
+  const selectedMonth = month ?? now.getMonth() + 1;
+
+  if (
+    !Number.isInteger(selectedYear) ||
+    selectedYear < 1 ||
+    selectedYear > 9999
+  ) {
+    throw new ApiError(400, "Invalid year");
+  }
+
+  if (
+    !Number.isInteger(selectedMonth) ||
+    selectedMonth < 1 ||
+    selectedMonth > 12
+  ) {
+    throw new ApiError(400, "Month must be between 1 and 12");
+  }
+
+  const result = await checkMonthlyBudgetService({
+    monthlyBudget,
+    year: selectedYear,
+    month: selectedMonth,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, result, "Budget check completed"));
+});

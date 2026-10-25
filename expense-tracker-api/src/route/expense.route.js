@@ -6,6 +6,9 @@ import {
   getExpenseById,
   updateExpense,
   deleteExpense,
+  getMonthlyExpenseSummary,
+  getCategoryExpenseSummary,
+  checkMonthlyBudget
 } from "../controller/expense.controller.js";
 
 const router = Router();
@@ -24,5 +27,13 @@ router.patch("/:id", updateExpense);
 
 // Delete an expense
 router.delete("/:id", deleteExpense);
+
+// Monthly Summary
+router.get("/summary/monthly", getMonthlyExpenseSummary);
+
+// Category wise Summary
+router.get("/summary/category", getCategoryExpenseSummary);
+
+router.post("/budget-check", checkMonthlyBudget);
 
 export default router;
