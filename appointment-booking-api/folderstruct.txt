@@ -1,0 +1,38 @@
+
+src/
+├── config/
+│   └── db.js
+│
+├── model/
+│   ├── user.model.js
+│   ├── slot.model.js
+│   └── booking.model.js
+│
+├── controller/
+│   ├── auth.controller.js
+│   ├── slot.controller.js
+│   └── booking.controller.js
+│
+├── service/
+│   ├── auth.service.js
+│   ├── slot.service.js
+│   └── booking.service.js
+│
+├── route/
+│   ├── auth.route.js
+│   ├── slot.route.js
+│   └── booking.route.js
+│
+├── middleware/
+│   ├── auth.middleware.js
+│   ├── role.middleware.js
+│   ├── validate.middleware.js
+│   └── error.middleware.js
+│
+├── utils/
+│   ├── ApiError.js
+│   ├── ApiResponse.js
+│   └── asyncHandler.js
+│
+├── app.js
+└── index.js

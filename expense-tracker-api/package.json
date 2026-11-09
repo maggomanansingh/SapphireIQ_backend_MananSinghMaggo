@@ -1,7 +1,7 @@
 {
   "name": "expense-tracker-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "This is the 2nd task given to create backend for expense tracking",
   "main": "index.js",
   "scripts": {
     "start":"node src/index.js",
