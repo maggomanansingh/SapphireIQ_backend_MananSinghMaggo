@@ -15,8 +15,13 @@ app.get("/api/health", (req, res) => {
 });
 
 // API routes will be registered here:
-// app.use("/api/auth", authRouter);
+import authRouter from "./route/auth.route.js";
+app.use("/api/auth", authRouter);
+
+// import slotRouter from "./route/slot.route.js";
 // app.use("/api/slots", slotRouter);
+
+// import bookingRouter from "./route/booking.route.js";
 // app.use("/api/bookings", bookingRouter);
 
 // Temporary 404 handler
