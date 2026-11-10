@@ -1,5 +1,8 @@
 
 src/
+├── seed/
+│   └── provider.seed.js
+|
 ├── config/
 │   └── db.js
 │
