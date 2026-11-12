@@ -39,3 +39,21 @@ src/
 │
 ├── app.js
 └── index.js
+
+
+{
+  "statusCode": 200,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YWYyYzk2ZDNmYzkxMmQzNmI0ZTU1MmUiLCJyb2xlIjoicHJvdmlkZXIiLCJpYXQiOjE3OTQ0NTg5NDUsImV4cCI6MTc5NDU0NTM0NX0.z83vNIgNXQxEC2jfAHY7wLVttVabw0gWM1-r8FagxkI",
+    "user": {
+      "_id": "6af2c96d3fc912d36b4e552e",
+      "name": "Dr. John Smith",
+      "email": "john@example.com",
+      "role": "provider"
+    }
+  },
+  "message": "Login successful",
+  "success": true
+}
+
+http://localhost:5000/api/slots/available?providerId=6af2c96d3fc912d36b4e552e&date=2026-11-15

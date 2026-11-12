@@ -1,4 +1,5 @@
 import {Slot} from "../model/slot.model.js";
+import {Booking} from "../model/booking.model.js";
 import {ApiError} from "../utils/ApiError.js";
 
 const SLOT_DURATION = 30 * 60 * 1000; // 30 minutes
@@ -43,4 +44,31 @@ export const createSlot = async ({ providerId, startTime, endTime }) => {
   });
 
   return slot;
+};
+
+export const getAvailableSlots = async ({ providerId, date }) => {
+  const selectedDate = new Date(`${date}T00:00:00.000Z`);
+
+  if (Number.isNaN(selectedDate.getTime())) {
+    throw new ApiError(400, "Invalid date");
+  }
+
+  const nextDate = new Date(selectedDate);
+  nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+
+  const bookedSlots = await Booking.find({
+    status: "confirmed",
+  }).distinct("slot");
+
+  const slots = await Slot.find({
+    provider: providerId,
+    startTime: {
+      $gte: selectedDate,
+      $lt: nextDate,
+      $gt: new Date(),
+    },
+    _id: { $nin: bookedSlots },
+  }).sort({ startTime: 1 });
+
+  return slots;
 };

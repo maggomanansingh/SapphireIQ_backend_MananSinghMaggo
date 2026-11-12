@@ -18,11 +18,11 @@ app.get("/api/health", (req, res) => {
 import authRouter from "./route/auth.route.js";
 app.use("/api/auth", authRouter);
 
-// import slotRouter from "./route/slot.route.js";
-// app.use("/api/slots", slotRouter);
+import slotRouter from "./route/slot.route.js";
+app.use("/api/slots", slotRouter);
 
-// import bookingRouter from "./route/booking.route.js";
-// app.use("/api/bookings", bookingRouter);
+import bookingRouter from "./route/booking.route.js";
+app.use("/api/bookings", bookingRouter);
 
 // Temporary 404 handler
 app.use((req, res) => {
