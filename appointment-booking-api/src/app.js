@@ -1,6 +1,7 @@
 import express from "express";
 import {ApiResponse} from "./utils/ApiResponse.js";
-
+import {errorMiddleware} from "./middleware/error.middleware.js";
+import {ApiError} from "./utils/ApiError.js";
 const app = express();
 
 // Global middleware
@@ -24,12 +25,12 @@ app.use("/api/slots", slotRouter);
 import bookingRouter from "./route/booking.route.js";
 app.use("/api/bookings", bookingRouter);
 
-// Temporary 404 handler
-app.use((req, res) => {
-  return res.status(404).json({
-    success: false,
-    message: `Route not found: ${req.originalUrl}`,
-  });
+// Handle undefined routes
+app.use((req, res, next) => {
+  next(new ApiError(404, `Route not found: ${req.originalUrl}`));
 });
+
+// Centralized error handler
+app.use(errorMiddleware);
 
 export default app;

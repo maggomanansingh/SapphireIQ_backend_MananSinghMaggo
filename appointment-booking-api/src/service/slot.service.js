@@ -47,9 +47,16 @@ export const createSlot = async ({ providerId, startTime, endTime }) => {
 };
 
 export const getAvailableSlots = async ({ providerId, date }) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new ApiError(400, "Date must be in YYYY-MM-DD format");
+  }
+
   const selectedDate = new Date(`${date}T00:00:00.000Z`);
 
-  if (Number.isNaN(selectedDate.getTime())) {
+  if (
+    Number.isNaN(selectedDate.getTime()) ||
+    selectedDate.toISOString().slice(0, 10) !== date
+  ) {
     throw new ApiError(400, "Invalid date");
   }
 

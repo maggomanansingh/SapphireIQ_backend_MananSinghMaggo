@@ -84,3 +84,41 @@ export const getProviderBookings = async (providerId) => {
 
   return bookings;
 };
+
+export const cancelBooking = async ({ bookingId, userId }) => {
+  // Validate booking ID
+  if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+    throw new ApiError(400, "Invalid booking ID");
+  }
+
+  // Cancel only a confirmed booking owned by this user.
+  const booking = await Booking.findOneAndUpdate(
+    {
+      _id: bookingId,
+      user: userId,
+      status: "confirmed",
+    },
+    {
+      $set: { status: "cancelled" },
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  if (!booking) {
+    const existingBooking = await Booking.findOne({
+      _id: bookingId,
+      user: userId,
+    });
+
+    if (!existingBooking) {
+      throw new ApiError(404, "Booking not found");
+    }
+
+    throw new ApiError(409, "Booking is already cancelled");
+  }
+
+  return booking;
+};

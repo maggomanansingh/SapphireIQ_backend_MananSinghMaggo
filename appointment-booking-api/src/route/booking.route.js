@@ -1,6 +1,10 @@
 import { Router } from "express";
 
-import { createBooking } from "../controller/booking.controller.js";
+import { createBooking,
+    getUserBookings,
+    getProviderBookings,
+    cancelBooking
+ } from "../controller/booking.controller.js";
 
 import verifyJWT from "../middleware/auth.middleware.js";
 import authorizeRoles from "../middleware/role.middleware.js";
@@ -13,6 +17,29 @@ router.post(
   verifyJWT,
   authorizeRoles("user"),
   createBooking
+);
+
+// Users can view their own booking history.
+router.get(
+  "/my-bookings",
+  verifyJWT,
+  authorizeRoles("user"),
+  getUserBookings
+);
+
+// Providers can view bookings for their own slots.
+router.get(
+  "/",
+  verifyJWT,
+  authorizeRoles("provider"),
+  getProviderBookings
+);
+
+router.patch(
+  "/:id/cancel",
+  verifyJWT,
+  authorizeRoles("user"),
+  cancelBooking
 );
 
 export default router;
