@@ -1,4 +1,8 @@
 const errorMiddleware = (err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
   let statusCode = err.statusCode || 500;
   let message = err.message || "Internal Server Error";
 
@@ -22,8 +26,10 @@ const errorMiddleware = (err, req, res, next) => {
     message = "Invalid resource ID";
   }
 
-  // Log unexpected server errors
-  if (statusCode === 500) {
+  // Hide internal server error details
+  if (statusCode >= 500) {
+    statusCode = 500;
+    message = "Internal Server Error";
     console.error("Internal Server Error:", err);
   }
 

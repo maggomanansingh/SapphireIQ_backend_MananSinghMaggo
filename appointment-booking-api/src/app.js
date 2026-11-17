@@ -1,8 +1,12 @@
 import express from "express";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./config/swagger.js";
 import {ApiResponse} from "./utils/ApiResponse.js";
 import {errorMiddleware} from "./middleware/error.middleware.js";
 import {ApiError} from "./utils/ApiError.js";
 const app = express();
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Global middleware
 app.use(express.json({ limit: "16kb" }));
